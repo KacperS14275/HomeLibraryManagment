@@ -1,0 +1,94 @@
+{% extends "manage_books/base.html.jinja" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+        <div class="bg-slate-800 p-6 text-white flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold">{{ book.title }}</h1>
+                <p class="text-slate-300 mt-1">ISBN: {{ book.isbn }} | {{ book.pages }} stron</p>
+            </div>
+            {% if user.is_authenticated %}
+            <div class="flex gap-2">
+                <a href="/book/{{ book.id }}/edit" class="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600">Edytuj</a>
+                <a href="/book/{{ book.id }}/delete" class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600">Usuń</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-gray-500 text-sm uppercase font-semibold">Autorzy</h3>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                        {% for author in book.authors.all %}
+                        <a href="/author/{{ author.id }}" class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full border border-blue-200 hover:bg-blue-100">{{ author.first_name }} {{ author.last_name }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-gray-500 text-sm uppercase font-semibold">Szczegóły wydania</h3>
+                    <p class="mt-1">Wydawca: <a href="/publisher/{{ book.publisher.id }}" class="text-blue-600 hover:underline">{{ book.publisher.name }}</a></p>
+                    <p>Seria: {% if book.series %}<a href="/series/{{ book.series.id }}" class="text-blue-600 hover:underline">{{ book.series.name }}</a>{% else %}Brak{% endif %}</p>
+                    <p>Data publikacji: {{ book.publication_date }}</p>
+                    <p>Okładka: {{ book.cover_type }} | Język: {{ book.language }}</p>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-gray-500 text-sm uppercase font-semibold">Gatunki i Tematy</h3>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                        {% for g in book.genres.all %}
+                        <span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">#{{ g.name }}</span>
+                        {% endfor %}
+                        {% for t in book.topics.all %}
+                        <span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs">#{{ t.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if user.is_authenticated %}
+                <div class="flex gap-3 pt-4">
+                    <form method="POST" action="/book/{{ book.id }}/toggle-read">
+                        <button class="px-4 py-2 rounded-lg font-medium transition {% if book.is_read %}bg-gray-200 text-gray-700{% else %}bg-green-600 text-white shadow-md{% endif %}">
+                            {% if book.is_read %}✓ Przeczytana{% else %}Oznacz jako przeczytaną{% endif %}
+                        </button>
+                    </form>
+                    <form method="POST" action="/book/{{ book.id }}/toggle-favorite">
+                        <button class="px-4 py-2 rounded-lg font-medium border transition {% if book.is_favorite %}border-yellow-400 bg-yellow-50 text-yellow-700{% else %}border-gray-300 text-gray-600{% endif %}">
+                            {% if book.is_favorite %}★ Ulubiona{% else %}☆ Do ulubionych{% endif %}
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <hr>
+
+        <div class="p-8 bg-gray-50">
+            <h2 class="text-xl font-bold mb-6">Notatki</h2>
+            {% if user.is_authenticated %}
+            <form action="/book/{{ book.id }}/add-note" method="POST" class="mb-6">
+                <textarea name="content" class="w-full border rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none" rows="3" placeholder="Dodaj nową notatkę..."></textarea>
+                <button type="submit" class="mt-2 bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Zapisz notatkę</button>
+            </form>
+            {% else %}
+            <p class="text-sm text-gray-500 mb-6 italic">Zaloguj się, aby dodawać notatki.</p>
+            {% endif %}
+
+            <div class="space-y-4">
+                {% for note in book.notes.all|sort(attribute='created_at', reverse=True) %}
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <p class="text-gray-800">{{ note.content }}</p>
+                    <p class="text-xs text-gray-400 mt-2">{{ note.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                </div>
+                {% else %}
+                <p class="text-gray-400 text-sm">Brak notatek dla tej książki.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "manage_books/base.html.jinja" %}
+{% block content %}
+<div class="bg-white p-8 rounded-lg shadow">
+    <h1 class="text-3xl font-bold">{{ author.first_name }} {{ author.last_name }}</h1>
+    <p class="text-gray-600">{{ author.scientific_title }} | Alias: {{ author.alias }}</p>
+    <p class="mt-2">Narodowość: {{ author.nationality }}</p>
+    
+    <h2 class="text-xl font-semibold mt-8 mb-4">Książki tego autora w bibliotece:</h2>
+    <ul class="list-disc ml-6 space-y-2">
+        {% for book in author.book_set.all %}
+        <li><a href="/book/{{ book.id }}" class="text-blue-600 hover:underline">{{ book.title }}</a></li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

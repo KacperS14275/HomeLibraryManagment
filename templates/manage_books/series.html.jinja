@@ -1,0 +1,16 @@
+{% extends "manage_books/base.html.jinja" %}
+{% block content %}
+<div class="bg-white p-8 rounded-lg shadow">
+    <h1 class="text-3xl font-bold">{{ series.name }}</h1>
+    <p class="text-gray-600 italic mt-2">{{ series.description }}</p>
+    <div class="mt-6 bg-blue-50 p-4 rounded text-blue-800">
+        Posiadasz: <strong>{{ series.book_set.count() }}</strong> książek z tej serii.
+    </div>
+    <div class="mt-8">
+        <h2 class="font-bold mb-4">Kolejność wydania:</h2>
+        {% for book in series.book_set.all|sort(attribute='publication_date') %}
+            <div class="p-2 border-b"><a href="/book/{{ book.id }}" class="text-blue-600">{{ book.title }}</a> ({{ book.publication_date.year }})</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

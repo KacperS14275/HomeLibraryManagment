@@ -1,0 +1,11 @@
+{% extends "manage_books/base.html.jinja" %}
+{% block content %}
+<div class="bg-white p-8 rounded-lg shadow">
+    <h1 class="text-3xl font-bold">{{ publisher.name }}</h1>
+    <p class="text-gray-600">{{ publisher.country }} | Rok założenia: {{ publisher.founded_year }}</p>
+    <div class="mt-4 space-x-4">
+        <a href="{{ publisher.website }}" class="text-blue-600 underline">Strona WWW</a>
+        <a href="mailto:{{ publisher.email }}" class="bg-slate-100 px-3 py-1 rounded">✉ Kontakt</a>
+    </div>
+</div>
+{% endblock %}

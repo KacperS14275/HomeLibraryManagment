@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>{% block title %}Home Library{% endblock %}</title>
+</head>
+<body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen">
+    <header class="bg-slate-800 text-white shadow-md">
+        <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <a href="/" class="text-xl font-bold tracking-tight">📚 MyLibrary</a>
+            <div class="space-x-4 flex items-center">
+                <a href="/" class="hover:text-blue-300">Główna</a>
+                {% if user.is_authenticated %}
+                    <a href="/add-book" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm">＋ Dodaj książkę</a>
+                    <div class="border-l border-slate-600 h-6 mx-2"></div>
+                    <span class="text-slate-400 text-sm">{{ user.username }}</span>
+                    <a href="/logout" class="hover:text-red-400 text-sm">Wyloguj</a>
+                {% else %}
+                    <a href="/login" class="hover:text-blue-300">Zaloguj się</a>
+                    <a href="/register" class="border border-white px-3 py-1 rounded hover:bg-white hover:text-slate-800 transition text-sm">Rejestracja</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 flex-grow">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-slate-100 border-t border-gray-200 py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+            &copy; 2026 Home Library Management. All rights reserved to KS.
+        </div>
+    </footer>
+</body>
+</html>
