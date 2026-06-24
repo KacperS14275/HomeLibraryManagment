@@ -1,38 +1,221 @@
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>{% block title %}Home Library{% endblock %}</title>
-</head>
-<body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen">
-    <header class="bg-slate-800 text-white shadow-md">
-        <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
-            <a href="/" class="text-xl font-bold tracking-tight">📚 MyLibrary</a>
-            <div class="space-x-4 flex items-center">
-                <a href="/" class="hover:text-blue-300">Główna</a>
-                {% if user.is_authenticated %}
-                    <a href="/add-book" class="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm">＋ Dodaj książkę</a>
-                    <div class="border-l border-slate-600 h-6 mx-2"></div>
-                    <span class="text-slate-400 text-sm">{{ user.username }}</span>
-                    <a href="/logout" class="hover:text-red-400 text-sm">Wyloguj</a>
-                {% else %}
-                    <a href="/login" class="hover:text-blue-300">Zaloguj się</a>
-                    <a href="/register" class="border border-white px-3 py-1 rounded hover:bg-white hover:text-slate-800 transition text-sm">Rejestracja</a>
-                {% endif %}
-            </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Biblioteka Domowa{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+      :root {
+        --paper: #ede9e1;
+        --paper-2: #e4dfd4;
+        --ink: #1c1917;
+        --ink-2: #44403c;
+        --muted: #78716c;
+        --line: #c9c2b5;
+        --sidebar: #1c1917;
+        --sidebar-text: #d6d3d1;
+        --accent: #9a3412;
+        --accent-hover: #7c2d12;
+        --sidebar-w: 15rem;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: 'IBM Plex Sans', system-ui, sans-serif;
+        font-size: 0.9375rem;
+        background: var(--paper);
+        color: var(--ink);
+        line-height: 1.5;
+      }
+      h1, h2, h3, .serif { font-family: 'Libre Baskerville', Georgia, serif; font-weight: 700; }
+
+      .app { display: flex; min-height: 100vh; width: 100%; }
+      .sidebar {
+        width: var(--sidebar-w); flex-shrink: 0;
+        background: var(--sidebar); color: var(--sidebar-text);
+        display: flex; flex-direction: column;
+        position: fixed; top: 0; left: 0; bottom: 0; z-index: 40;
+        border-right: 3px solid var(--accent);
+      }
+      .sidebar-brand {
+        padding: 1.25rem 1rem 1rem;
+        border-bottom: 1px solid #292524;
+        font-family: 'Libre Baskerville', serif;
+        font-size: 1.05rem;
+        color: #fafaf9;
+        text-decoration: none;
+        line-height: 1.3;
+      }
+      .sidebar-brand small { display: block; font-family: 'IBM Plex Sans', sans-serif; font-size: 0.7rem; font-weight: 400; color: #a8a29e; margin-top: 0.25rem; letter-spacing: 0.06em; text-transform: uppercase; }
+      .sidebar-nav { flex: 1; overflow-y: auto; padding: 0.75rem 0; }
+      .sidebar-section { padding: 0.5rem 1rem 0.25rem; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: #78716c; }
+      .sidebar a {
+        display: block; padding: 0.45rem 1rem; color: var(--sidebar-text);
+        text-decoration: none; font-size: 0.875rem; border-left: 3px solid transparent;
+      }
+      .sidebar a:hover { background: #292524; color: #fafaf9; }
+      .sidebar a.active { border-left-color: var(--accent); background: #292524; color: #fafaf9; }
+      .sidebar-footer { padding: 1rem; border-top: 1px solid #292524; font-size: 0.8rem; }
+      .sidebar-footer .user { color: #fafaf9; margin-bottom: 0.5rem; }
+
+      .main { flex: 1; margin-left: var(--sidebar-w); min-width: 0; display: flex; flex-direction: column; min-height: 100vh; }
+      .topbar {
+        background: var(--paper-2); border-bottom: 1px solid var(--line);
+        padding: 0.75rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        position: sticky; top: 0; z-index: 30;
+      }
+      .topbar h1 { margin: 0; font-size: 1.35rem; }
+      .content { flex: 1; padding: 1.25rem 1.5rem 2rem; width: 100%; }
+
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        padding: 0.4rem 0.9rem; font-size: 0.8125rem; font-weight: 500;
+        border: 1px solid var(--line); background: #fafaf9; color: var(--ink);
+        cursor: pointer; text-decoration: none; font-family: inherit;
+      }
+      .btn:hover { background: #fff; border-color: var(--ink-2); }
+      .btn-accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+      .btn-accent:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+      .btn-danger { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+      .btn-danger:hover { background: #fee2e2; }
+      .btn-ghost { background: transparent; }
+      .btn-sm { padding: 0.25rem 0.6rem; font-size: 0.75rem; }
+
+      .link { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+      .link:hover { color: var(--accent-hover); }
+      .muted { color: var(--muted); }
+
+      .data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+      .data-table th {
+        text-align: left; padding: 0.5rem 0.75rem; font-weight: 600; font-size: 0.7rem;
+        text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted);
+        border-bottom: 2px solid var(--ink); background: var(--paper-2);
+      }
+      .data-table td { padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+      .data-table tbody tr:hover td { background: rgba(255,255,255,0.55); }
+      .data-table .num { color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+
+      .panel { background: #fafaf9; border: 1px solid var(--line); }
+      .panel-head {
+        padding: 0.6rem 1rem; background: var(--paper-2); border-bottom: 1px solid var(--line);
+        font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+        display: flex; justify-content: space-between; align-items: center;
+      }
+      .panel-body { padding: 0; }
+
+      .meta-table { width: 100%; border-collapse: collapse; }
+      .meta-table th { text-align: left; padding: 0.5rem 1rem; width: 11rem; font-weight: 500; color: var(--muted); border-bottom: 1px solid var(--line); vertical-align: top; }
+      .meta-table td { padding: 0.5rem 1rem; border-bottom: 1px solid var(--line); }
+
+      .flash { padding: 0.6rem 1rem; border-bottom: 1px solid var(--line); font-size: 0.875rem; }
+      .flash-ok { background: #ecfdf5; color: #065f46; }
+      .flash-err { background: #fef2f2; color: #991b1b; }
+      .flash-info { background: #eff6ff; color: #1e40af; }
+
+      .status-dot { display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 50%; margin-right: 0.35rem; vertical-align: middle; }
+      .status-fav { background: #d97706; }
+      .status-read { background: #059669; }
+
+      .filter-col label { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0; font-size: 0.8125rem; cursor: pointer; }
+      .filter-col label:hover { color: var(--ink); }
+
+      .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem 1.5rem; max-width: 100%; }
+      .form-field label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 0.35rem; }
+      .form-field.full { grid-column: 1 / -1; }
+
+      input:not([type=checkbox]):not([type=radio]), select, textarea {
+        width: 100%; padding: 0.45rem 0.6rem; border: 1px solid var(--line);
+        background: #fff; font-family: inherit; font-size: 0.875rem; color: var(--ink);
+      }
+      input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+      input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
+
+      .auth-screen { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; width: 100%; }
+      .auth-left { background: var(--sidebar); color: #fafaf9; padding: 3rem; display: flex; flex-direction: column; justify-content: flex-end; }
+      .auth-left h1 { font-size: 2.5rem; margin: 0 0 1rem; line-height: 1.2; }
+      .auth-left p { color: #a8a29e; max-width: 28rem; margin: 0; }
+      .auth-right { background: var(--paper); padding: 3rem; display: flex; align-items: center; justify-content: center; }
+      .auth-form { width: 100%; max-width: 22rem; }
+
+      .mobile-nav { display: none; }
+
+      @media (max-width: 900px) {
+        .sidebar { display: none; }
+        .main { margin-left: 0; }
+        .mobile-nav {
+          display: flex; flex-wrap: wrap; gap: 0.25rem; padding: 0.5rem 1rem;
+          background: var(--sidebar); border-bottom: 3px solid var(--accent);
+        }
+        .mobile-nav a { color: var(--sidebar-text); text-decoration: none; font-size: 0.75rem; padding: 0.3rem 0.5rem; }
+        .auth-screen { grid-template-columns: 1fr; }
+        .auth-left { padding: 2rem; min-height: auto; }
+        .auth-right { padding: 2rem 1.5rem; }
+      }
+    </style>
+  </head>
+  <body>
+    {% block shell %}
+    <div class="mobile-nav">
+      <a href="{% url 'index' %}">Książki</a>
+      {% if user.is_authenticated %}
+      <a href="{% url 'book_add' %}">+ Dodaj</a>
+      <a href="{% url 'author_list' %}">Autorzy</a>
+      <a href="{% url 'publisher_list' %}">Wydawcy</a>
+      <a href="{% url 'logout' %}">Wyloguj</a>
+      {% else %}
+      <a href="{% url 'login' %}">Login</a>
+      <a href="{% url 'register' %}">Rejestracja</a>
+      {% endif %}
+    </div>
+    <div class="app">
+      <aside class="sidebar">
+        <a href="{% url 'index' %}" class="sidebar-brand">
+          Biblioteka Domowa
+          <small>katalog domowy</small>
+        </a>
+        <nav class="sidebar-nav">
+          <div class="sidebar-section">Przeglądanie</div>
+          <a href="{% url 'index' %}">Wszystkie książki</a>
+          {% if user.is_authenticated %}
+          <a href="{% url 'book_add' %}">Dodaj książkę</a>
+          <div class="sidebar-section">Słowniki</div>
+          <a href="{% url 'author_list' %}">Autorzy</a>
+          <a href="{% url 'publisher_list' %}">Wydawcy</a>
+          <a href="{% url 'series_list' %}">Serie</a>
+          <a href="{% url 'genre_list' %}">Gatunki</a>
+          <a href="{% url 'topic_list' %}">Tematy</a>
+          <a href="{% url 'category_list' %}">Działy</a>
+          {% endif %}
         </nav>
-    </header>
-
-    <main class="container mx-auto px-4 py-8 flex-grow">
-        {% block content %}{% endblock %}
-    </main>
-
-    <footer class="bg-slate-100 border-t border-gray-200 py-6 mt-12">
-        <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
-            &copy; 2026 Home Library Management. All rights reserved to KS.
+        <div class="sidebar-footer">
+          {% if user.is_authenticated %}
+          <div class="user">{{ user.username }}</div>
+          <a href="{% url 'logout' %}" class="btn btn-sm" style="width:100%;color:#fafaf9;background:#292524;border-color:#44403c">Wyloguj</a>
+          {% else %}
+          <a href="{% url 'login' %}" class="btn btn-accent btn-sm" style="width:100%;margin-bottom:0.4rem">Zaloguj się</a>
+          <a href="{% url 'register' %}" class="btn btn-sm" style="width:100%;color:#fafaf9;background:#292524;border-color:#44403c">Rejestracja</a>
+          {% endif %}
         </div>
-    </footer>
-</body>
+      </aside>
+
+      <div class="main">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="flash {% if message.tags == 'error' %}flash-err{% elif message.tags == 'info' %}flash-info{% else %}flash-ok{% endif %}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+
+        {% block topbar %}{% endblock %}
+
+        <div class="content">
+          {% block content %}{% endblock %}
+        </div>
+      </div>
+    </div>
+    {% endblock %}
+  </body>
 </html>

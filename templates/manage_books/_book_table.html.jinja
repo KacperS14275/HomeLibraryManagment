@@ -1,0 +1,30 @@
+{% if books %}
+<table class="data-table">
+  <thead>
+    <tr>
+      {% if not compact %}<th style="width:2rem">#</th>{% endif %}
+      <th>Tytuł</th>
+      {% if not compact %}<th>ISBN</th><th>Rok</th>{% endif %}
+      <th style="width:4rem">St.</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for book in books %}
+    <tr>
+      {% if not compact %}<td class="num">{{ forloop.counter }}</td>{% endif %}
+      <td><a href="{% url 'book' book_id=book.id %}" class="link" style="font-weight:500">{{ book.title }}</a></td>
+      {% if not compact %}
+      <td class="num">{{ book.isbn }}</td>
+      <td class="num">{{ book.publication_date.year }}</td>
+      {% endif %}
+      <td>
+        {% if book.is_favorite %}<span class="status-dot status-fav" title="Ulubiona"></span>{% endif %}
+        {% if book.is_read %}<span class="status-dot status-read" title="Przeczytana"></span>{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="muted" style="padding:1.5rem;text-align:center;font-size:0.875rem">Brak pozycji</p>
+{% endif %}

@@ -1,73 +1,82 @@
-{% extends "manage_books/base.html.jinja" %}
+{% extends "base.html.jinja" %}
+
+{% block topbar %}
+<div class="topbar">
+  <h1 class="serif">Katalog</h1>
+  <div class="flex items-center gap-2 text-sm muted">
+    <span>{{ books|length }} pozycji</span>
+    {% if user.is_authenticated %}
+    <a href="{% url 'book_add' %}" class="btn btn-accent btn-sm">Dodaj książkę</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="flex flex-col md:flex-row gap-8">
-    <!-- Sidebar z filtrami -->
-    <aside class="w-full md:w-1/4 space-y-6">
-        <section class="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 class="font-bold border-b pb-2 mb-3 text-slate-700">Filtruj Gatunki</h3>
-            <ul class="space-y-1 text-sm">
-                {% for genre in genres %}
-                <li><a href="?genre={{ genre.id }}" class="text-blue-600 hover:underline">{{ genre.name }}</a></li>
-                {% endfor %}
-            </ul>
-        </section>
-        
-        <section class="bg-white p-4 rounded-lg shadow-sm border">
-            <h3 class="font-bold border-b pb-2 mb-3 text-slate-700">Filtruj Tematy</h3>
-            <ul class="space-y-1 text-sm">
-                {% for topic in topics %}
-                <li><a href="?topic={{ topic.id }}" class="text-blue-600 hover:underline">{{ topic.name }}</a></li>
-                {% endfor %}
-            </ul>
-        </section>
-    </aside>
+<div style="display:grid; grid-template-columns: 14rem 1fr; gap: 0; min-height: calc(100vh - 8rem); border: 1px solid var(--line);">
+  <aside style="background: var(--paper-2); border-right: 1px solid var(--line); padding: 1rem;">
+    <form method="get">
+      <div style="margin-bottom: 1rem;">
+        <label style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);display:block;margin-bottom:0.35rem">Szukaj</label>
+        <input type="text" name="q" value="{{ search_query }}" placeholder="Tytuł, ISBN…">
+      </div>
 
-    <!-- Lista książek -->
-    <div class="w-full md:w-3/4 space-y-10">
-        <section>
-            <h2 class="text-2xl font-bold mb-4 flex items-center">⭐ Ulubione</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {% for book in favorite_books %}
-                    <div class="bg-white p-4 rounded shadow border-l-4 border-yellow-400">
-                        <a href="/book/{{ book.id }}" class="font-bold text-blue-700 hover:underline">{{ book.title }}</a>
-                        <p class="text-xs text-gray-500">{{ book.publisher.name }}</p>
-                    </div>
-                {% endfor %}
-            </div>
-        </section>
+      <div style="margin-bottom: 1rem;">
+        <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:0.5rem">Gatunki</div>
+        <div class="filter-col" style="max-height:10rem;overflow-y:auto">
+          {% for genre in genres %}
+          <label><input type="checkbox" name="genre" value="{{ genre.id }}" {% if genre.id in selected_genres %}checked{% endif %}> {{ genre.name }}</label>
+          {% empty %}<span class="muted" style="font-size:0.8rem">—</span>{% endfor %}
+        </div>
+      </div>
 
-        <section>
-            <h2 class="text-2xl font-bold mb-4">📚 Wszystkie Książki</h2>
-            <div class="bg-white rounded-lg shadow overflow-hidden">
-                <table class="w-full text-left border-collapse">
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="p-3 border-b">Tytuł</th>
-                            <th class="p-3 border-b">Autorzy</th>
-                            <th class="p-3 border-b text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for book in all_books %}
-                        <tr class="hover:bg-gray-50">
-                            <td class="p-3 border-b"><a href="/book/{{ book.id }}" class="text-blue-600 font-medium">{{ book.title }}</a></td>
-                            <td class="p-3 border-b text-sm">
-                                {% for author in book.authors.all %}{{ author.first_name }} {{ author.last_name }}{% if not loop.last %}, {% endif %}{% endfor %}
-                            </td>
-                            <td class="p-3 border-b text-center">
-                                {% if book.is_read %}
-                                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Przeczytana</span>
-                                {% else %}
-                                    <span class="bg-gray-100 text-gray-500 px-2 py-1 rounded text-xs">Nieprzeczytana</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </section>
+      <div style="margin-bottom: 1rem;">
+        <div style="font-size:0.7rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:0.5rem">Tematy</div>
+        <div class="filter-col" style="max-height:10rem;overflow-y:auto">
+          {% for topic in topics %}
+          <label><input type="checkbox" name="topic" value="{{ topic.id }}" {% if topic.id in selected_topics %}checked{% endif %}> {{ topic.name }}</label>
+          {% empty %}<span class="muted" style="font-size:0.8rem">—</span>{% endfor %}
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-accent" style="width:100%;margin-bottom:0.4rem">Filtruj</button>
+      <a href="{% url 'index' %}" class="btn btn-ghost btn-sm" style="width:100%;text-align:center">Wyczyść</a>
+    </form>
+  </aside>
+
+  <div style="display:grid; grid-template-columns: 1fr minmax(16rem, 22rem); min-width:0;">
+    <section class="panel" style="border:none;border-right:1px solid var(--line)">
+      <div class="panel-head">
+        <span>Wszystkie książki</span>
+        <span class="muted">{{ books|length }}</span>
+      </div>
+      <div class="panel-body" style="overflow-x:auto">
+        {% include "manage_books/_book_table.html.jinja" with books=books compact=False only %}
+      </div>
+    </section>
+
+    <div style="display:flex;flex-direction:column;">
+      <section class="panel" style="border:none;border-bottom:1px solid var(--line);flex:1">
+        <div class="panel-head"><span>Ulubione</span><span class="muted">{{ favorite_books|length }}</span></div>
+        <div class="panel-body" style="overflow-x:auto">
+          {% include "manage_books/_book_table.html.jinja" with books=favorite_books compact=True only %}
+        </div>
+      </section>
+      <section class="panel" style="border:none;flex:1">
+        <div class="panel-head"><span>Przeczytane</span><span class="muted">{{ read_books|length }}</span></div>
+        <div class="panel-body" style="overflow-x:auto">
+          {% include "manage_books/_book_table.html.jinja" with books=read_books compact=True only %}
+        </div>
+      </section>
     </div>
+  </div>
 </div>
+
+<style>
+  @media (max-width: 1100px) {
+    .content > div { grid-template-columns: 1fr !important; }
+    .content > div > div { grid-template-columns: 1fr !important; }
+    .content > div > aside { border-right: none !important; border-bottom: 1px solid var(--line); }
+  }
+</style>
 {% endblock %}

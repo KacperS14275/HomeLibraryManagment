@@ -1,0 +1,33 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}Rejestracja — Biblioteka Domowa{% endblock %}
+
+{% block shell %}
+<div class="auth-screen">
+  <div class="auth-left">
+    <h1 class="serif">Nowe konto</h1>
+    <p>Załóż konto, aby dodawać książki, pisać notatki i edytować swoją domową bibliotekę.</p>
+  </div>
+  <div class="auth-right">
+    <div class="auth-form">
+      <h2 class="serif" style="margin:0 0 0.25rem;font-size:1.5rem">Rejestracja</h2>
+      <p class="muted" style="margin:0 0 1.5rem;font-size:0.875rem">Uzupełnij formularz</p>
+      <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-field" style="margin-bottom:1rem">
+          <label>{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<p class="muted" style="font-size:0.75rem;margin:0.2rem 0 0">{{ field.help_text }}</p>{% endif %}
+          {% if field.errors %}<p style="color:#991b1b;font-size:0.8rem;margin:0.25rem 0 0">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-accent" style="width:100%;padding:0.6rem">Utwórz konto</button>
+      </form>
+      <p class="muted" style="margin-top:1.25rem;font-size:0.875rem;text-align:center">
+        Masz konto? <a href="{% url 'login' %}" class="link">Zaloguj się</a>
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

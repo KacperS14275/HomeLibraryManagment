@@ -1,0 +1,27 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}{{ title }} — Biblioteka Domowa{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <h1 class="serif">{{ title }}</h1>
+  <a href="{% url list_url %}" class="btn btn-sm">Anuluj</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<form method="post" style="max-width:36rem">
+  {% csrf_token %}
+  {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+  <div class="form-grid" style="border:1px solid var(--line);padding:1.25rem;background:#fafaf9;margin-bottom:1rem">
+    {% for field in form %}
+    <div class="form-field {% if field.name == 'description' %}full{% endif %}">
+      <label>{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<p style="color:#991b1b;font-size:0.8rem;margin:0.25rem 0 0">{{ field.errors.0 }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <button type="submit" class="btn btn-accent">Zapisz</button>
+</form>
+{% endblock %}

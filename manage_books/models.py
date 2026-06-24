@@ -12,75 +12,112 @@ class Book(models.Model):
 
     LANGUAGES = [
         ('english', 'English'),
+        ('polish', 'Polish'),
         ('spanish', 'Spanish'),
         ('french', 'French'),
-        ('polish', 'Polish'),
-        ('hebrew', 'Hebrew'),
+        ('german', 'German'),
         ('other', 'Other'),
     ]
 
     title = models.CharField(max_length=200)
-    isbn = models.CharField(max_length=20)
+    isbn = models.CharField(max_length=20, unique=True)
     publication_date = models.DateField()
     pages = models.IntegerField()
-    cover = models.ImageField(upload_to='covers/')
-    language = models.CharField(max_length=50, choices=LANGUAGES)
+    cover = models.CharField(max_length=20, choices=COVERS)
+    language = models.CharField(max_length=20, choices=LANGUAGES)
     is_read = models.BooleanField(default=False)
     is_favorite = models.BooleanField(default=False)
-    author = models.ManyToManyField('Author', related_name='books', blank=True)  # ✅ usunięto on_delete
+    authors = models.ManyToManyField('Author', related_name='books', blank=True)
     publisher = models.ForeignKey('Publisher', on_delete=models.RESTRICT)
     series = models.ForeignKey('Series', on_delete=models.RESTRICT, blank=True, null=True)
-    genres = models.ManyToManyField('Genre', related_name='books', blank=True)   # ✅ usunięto on_delete
-    topics = models.ManyToManyField('Topic', related_name='books', blank=True)   # ✅ usunięto on_delete
-    # ✅ notes jest już zdefiniowane przez related_name w klasie Note — usuń to pole stąd
+    category = models.ForeignKey('Category', on_delete=models.SET_NULL, blank=True, null=True)
+    genres = models.ManyToManyField('Genre', related_name='books', blank=True)
+    topics = models.ManyToManyField('Topic', related_name='books', blank=True)
+
+    def __str__(self):
+        return self.title
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('book', kwargs={'book_id': self.pk})
 
 
 class Author(models.Model):
     TITLES = [
-        ('mr', 'Mr.'),
-        ('ms', 'Ms.'),
+        ('ks', 'Ks.'),
         ('dr', 'Dr.'),
         ('prof', 'Prof.'),
-        ('ks', 'Ks.'),
-        ('bp', 'Bp.'),
+        ('mr', 'Mr.'),
+        ('ms', 'Ms.'),
     ]
 
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
+    nationality = models.CharField(max_length=100)
+    title = models.CharField(max_length=20, choices=TITLES, blank=True, null=True)
     alias = models.CharField(max_length=100, blank=True, null=True)
-    nationality = models.CharField(max_length=50)
-    title = models.CharField(max_length=100, choices=TITLES, blank=True, null=True)
-    # ✅ Nie definiuj tu books ani series — M2M wystarczy zdefiniować po jednej stronie
-    series = models.ManyToManyField('Series', related_name='authors', blank=True)  # ✅ usunięto on_delete
+
+    def __str__(self):
+        return f'{self.first_name} {self.last_name}'
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('author', kwargs={'author_id': self.pk})
 
 
 class Publisher(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=200)
     country = models.CharField(max_length=2, choices=pytz.country_names.items())
-    foundation_year = models.IntegerField()
+    founded_year = models.IntegerField()
     website = models.URLField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
-    # ✅ ManyToOneField nie istnieje — relacja Publisher->Book jest przez ForeignKey w Book
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('publisher', kwargs={'publisher_id': self.pk})
 
 
 class Genre(models.Model):
-    name = models.CharField(max_length=50)
-    # ✅ M2M zdefiniowane już w Book, nie trzeba tu powtarzać
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 
 class Series(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField()
-    # ✅ Relacje do Book i Author już zdefiniowane po ich stronie
+    name = models.CharField(max_length=200)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('series', kwargs={'series_id': self.pk})
 
 
 class Topic(models.Model):
     name = models.CharField(max_length=100)
-    description = models.TextField()
-    # ✅ M2M zdefiniowane już w Book
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 
 class Note(models.Model):
-    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='notes')  # ✅ usunięto duplikat
-    created_at = models.DateTimeField(auto_now_add=True)
     content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='notes')
+
+    def __str__(self):
+        return f'Note for {self.book.title}'

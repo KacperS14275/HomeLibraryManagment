@@ -1,0 +1,18 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}Usuń — Biblioteka Domowa{% endblock %}
+
+{% block topbar %}
+<div class="topbar"><h1 class="serif">Potwierdzenie</h1></div>
+{% endblock %}
+
+{% block content %}
+<div style="border:1px solid var(--line);padding:2rem;background:#fafaf9;max-width:32rem">
+  <p style="margin:0 0 1.5rem">Usunąć {{ object_label }}? Tej operacji nie można cofnąć.</p>
+  <form method="post" style="display:flex;gap:0.5rem">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Usuń</button>
+    <a href="{{ cancel_url }}" class="btn">Anuluj</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}{{ title }} — Biblioteka Domowa{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <h1 class="serif">{{ title }}</h1>
+  {% if book %}<a href="{% url 'book' book_id=book.id %}" class="btn btn-sm">Anuluj</a>{% else %}<a href="{% url 'index' %}" class="btn btn-sm">Anuluj</a>{% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+  {% csrf_token %}
+  <div class="form-grid" style="border:1px solid var(--line);padding:1.25rem;background:#fafaf9;margin-bottom:1rem">
+    {% for field in form %}
+    <div class="form-field {% if field.name in 'authors,genres,topics,description' %}full{% endif %}">
+      <label>{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<p style="color:#991b1b;font-size:0.8rem;margin:0.25rem 0 0">{{ field.errors.0 }}</p>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <p class="muted" style="font-size:0.8rem;margin-bottom:1rem">
+    <a href="{% url 'author_add_quick' %}?next={% if book %}{% url 'book_edit' book_id=book.id %}{% else %}{% url 'book_add' %}{% endif %}" class="link">Dodaj autora</a>
+    ·
+    <a href="{% url 'publisher_add' %}?next={% url 'book_add' %}" class="link">Dodaj wydawcę</a>
+  </p>
+  <button type="submit" class="btn btn-accent">Zapisz książkę</button>
+</form>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html.jinja" %}
+
+{% block title %}{{ title }} — Biblioteka Domowa{% endblock %}
+
+{% block topbar %}
+<div class="topbar">
+  <h1 class="serif">{{ title }}</h1>
+  <a href="{% url add_url %}" class="btn btn-accent btn-sm">+ Dodaj</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="panel">
+  {% if items %}
+  <table class="data-table">
+    <thead><tr><th style="width:3rem">Lp.</th><th>Nazwa</th><th style="width:10rem;text-align:right">Akcje</th></tr></thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td class="num">{{ forloop.counter }}</td>
+        <td>
+          {% if detail_type == 'author' %}
+          <a href="{% url 'author' author_id=item.pk %}" class="link" style="font-weight:500">{{ item }}</a>
+          {% elif detail_type == 'publisher' %}
+          <a href="{% url 'publisher' publisher_id=item.pk %}" class="link" style="font-weight:500">{{ item }}</a>
+          {% elif detail_type == 'series' %}
+          <a href="{% url 'series' series_id=item.pk %}" class="link" style="font-weight:500">{{ item }}</a>
+          {% else %}
+          {{ item }}
+          {% endif %}
+        </td>
+        <td style="text-align:right;white-space:nowrap">
+          <a href="{% url edit_url_name pk=item.pk %}" class="btn btn-sm">Edytuj</a>
+          <a href="{% url delete_url_name pk=item.pk %}" class="btn btn-danger btn-sm">Usuń</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted" style="padding:2rem;text-align:center">Brak pozycji. <a href="{% url add_url %}" class="link">Dodaj pierwszą</a></p>
+  {% endif %}
+</div>
+{% endblock %}
